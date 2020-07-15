@@ -9,9 +9,12 @@ import 'formatter.dart';
 import 'converters.dart';
 
 class NoteBoxPage extends StatefulWidget {
-  NoteBoxPage(this.notebox);
+  NoteBoxPage(this.notebox, {String text})  {
+    this.initial_text = text;
+  }
 
   final NoteBox notebox;
+  String initial_text;
 
   @override
   _NoteBoxPageState createState() => _NoteBoxPageState();
@@ -27,6 +30,10 @@ class _NoteBoxPageState extends State<NoteBoxPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.initial_text != null) {
+      note_editing_controller.text = widget.initial_text;
+      widget.initial_text = null;
+    }
     return Scaffold(
       appBar: AppBar(
         leading: leading_action_from_state(),

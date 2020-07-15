@@ -60,7 +60,8 @@ class _NoteDrawerPageState extends State<NoteDrawerPage> {
               separatorBuilder: (context, i) => Padding(
                   padding: EdgeInsets.fromLTRB(64, 4, 16, 4),
                   child: SizedBox(
-                      height: 1, child: Container(color: Colors.grey[200]))),
+                      height: 1,
+                      child: Container(color: Colors.grey[200]))),
             )
           : Center(child: CircularProgressIndicator()),
       floatingActionButton: FloatingActionButton(
@@ -108,8 +109,7 @@ class _NoteDrawerPageState extends State<NoteDrawerPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
                         Text(notebox.title,
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold)),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                         Text(notebox.notes.length.toString())
                       ],
                     ),
