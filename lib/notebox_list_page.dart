@@ -1,3 +1,5 @@
+import 'package:package_info/package_info.dart';
+
 import 'formatter.dart';
 import 'notebox_page.dart';
 import 'notebox_creation_dialog.dart';
@@ -39,11 +41,12 @@ class _NoteDrawerPageState extends State<NoteDrawerPage> {
           IconButton(
             icon: Icon(Icons.info_outline),
             tooltip: "About...",
-            onPressed: () {
+            onPressed: () async {
+              final packageInfo = await PackageInfo.fromPlatform();
               showAboutDialog(
                   context: context,
-                  applicationName: "Notty",
-                  applicationVersion: "0.2.0-alpha",
+                  applicationName: packageInfo.appName,
+                  applicationVersion: packageInfo.version,
                   children: <Widget>[
                     Text("by Gorky Rojas."),
                     SizedBox(height: 12),

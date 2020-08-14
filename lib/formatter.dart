@@ -128,14 +128,17 @@ List<FormattedText> format(String note_text) {
         switch (token.type) {
           case FormatTokenType.modifier: {
             final style = modifier_to_style[token.text];
-            if (spans.last.styles.isNotEmpty &&
-                spans.last.styles.last == style) {
+            if (spans.last.styles.isNotEmpty && spans.last.styles.last == style) {
               spans.add(FormattedText(
                   styles: spans.last.styles.sublist(
                       0, spans.last.styles.length - 1)));
             }
             else if (spans.last.styles.contains(style)) {
-              spans = cancel_style(spans, style);
+              cancel_in_style(spans, style);
+              final new_span = FormattedText(
+                  styles: spans.last.styles.sublist(
+                      0, spans.last.styles.length - 1));
+              spans.add(new_span);
             }
             else {
               final new_span = FormattedText(
@@ -173,16 +176,35 @@ List<FormattedText> format(String note_text) {
 }
 
 List<FormattedText> cancel_style(List<FormattedText> list, SpanStyle style) {
-  // TODO: preserve hyperlinks here
-  if (list.last.styles.length != 1 || style != SpanStyle.quote) {
-    final cancel_from = list.last.styles.indexOf(style);
-    list[cancel_from].text = list
+  if (style != SpanStyle.quote) {
+    final cancel_from = list.length - (list.last.styles.length - list.last.styles.indexOf(style));
+    final span = list[cancel_from];
+    span.text = list
         .sublist(cancel_from)
         .map((ft) => style_to_modifier[ft.styles.last] + ft.text)
         .join();
+    span.styles.removeLast();
     return list.sublist(0, cancel_from + 1);
   }
   return list;
+}
+
+void cancel_in_style(List<FormattedText> list, SpanStyle style) {
+  // TODO: preserve hyperlinks here
+  final styles = list.last.styles;
+  final styles_to_cancel = styles.sublist(styles.indexOf(style) + 1);
+  final cancel_from = list.lastIndexWhere((s) => s.styles.last == style);
+  final cancel_indexes = styles_to_cancel.map((s) =>
+    list.indexWhere((span) => (span.styles.isNotEmpty && span.styles.last == s), cancel_from));
+
+  var i = list.length - 1;
+  for (; list[i].styles.last != style; i--) {
+    final span = list[i];
+    if (cancel_indexes.contains(i))
+      span.text = style_to_modifier[span.styles.last] + span.text;
+    for (final style_to_cancel in styles_to_cancel)
+      span.styles.remove(style_to_cancel);
+  }
 }
 
 List<FormattedText> _format(String note_text) {

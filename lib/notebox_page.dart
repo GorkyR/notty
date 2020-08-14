@@ -1,9 +1,7 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'data.dart';
 import 'formatter.dart';
 import 'converters.dart';
@@ -21,19 +19,28 @@ class NoteBoxPage extends StatefulWidget {
 }
 
 class _NoteBoxPageState extends State<NoteBoxPage> {
-  bool submit_button_enabled = false;
   TextEditingController note_editing_controller = TextEditingController();
+  ScrollController list_scroll_controller = ScrollController();
+  bool submit_button_enabled = false;
   List<Note> selection = [];
   Note note_being_tapped;
   bool typing = false;
   Note note_being_edited;
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
     if (widget.initial_text != null) {
       note_editing_controller.text = widget.initial_text;
-      widget.initial_text = null;
+      submit_button_enabled = true;
     }
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      list_scroll_controller.jumpTo(list_scroll_controller.position.maxScrollExtent);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: leading_action_from_state(),
@@ -50,12 +57,12 @@ class _NoteBoxPageState extends State<NoteBoxPage> {
         backgroundColor: notecolor_to_color(widget.notebox.color),
       ),
       body: Container(
-        color: Color.lerp(notecolor_to_color(widget.notebox.color),
-            Color.fromRGBO(255, 255, 255, 0), 0.6875),
+        color: Color.lerp(notecolor_to_color(widget.notebox.color), Color.fromRGBO(255, 255, 255, 0), 0.6875),
         child: Column(
           children: <Widget>[
             Expanded(
               child: ListView.builder(
+                controller: list_scroll_controller,
                 itemCount: widget.notebox.notes.length,
                 itemBuilder: (context, i) =>
                     make_notebubble(widget.notebox.notes[i]),
@@ -102,11 +109,16 @@ class _NoteBoxPageState extends State<NoteBoxPage> {
                           onPressed: submit_button_enabled
                               ? (note_being_edited == null
                                 ? () async {
+                                    final at_end = list_scroll_controller.position.atEdge && list_scroll_controller.position.pixels > 0;
                                     final note = Note(note_editing_controller.text);
                                     await add_note(widget.notebox, note);
                                     setState(() {
                                       note_editing_controller.clear();
                                       submit_button_enabled = false;
+                                      if (at_end)
+                                        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                                          list_scroll_controller.jumpTo(list_scroll_controller.position.maxScrollExtent);
+                                        });
                                     });
                                   }
                                 : () async {
